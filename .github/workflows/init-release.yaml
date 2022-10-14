@@ -1,0 +1,80 @@
+name: Init ArgoCD Release
+on:
+  push:
+    tags:
+      - "release-v*"
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-release:
+    permissions:
+      contents: write # To push changes to release branch
+    name: Perform automatic release on trigger ${{ github.ref }}
+  # if: github.repository == 'argoproj/argo-cd'
+    runs-on: ubuntu-22.04
+    env:
+      SOURCE_TAG: ${{ github.ref }}
+      # Name of the GitHub user for Git config
+      GIT_USERNAME: 34fathombelow   #### Make sure to change this before PR
+      # E-Mail of the GitHub user for Git config
+      GIT_EMAIL: 34fathombelow@protonmail.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v3.2.0
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.FINE_GRAIN_PAT }} # Used to pass workflow to next workflow.
+
+      - name: Check if the published tag is well formed and setup vars
+        id: vars
+        run: ./.github/workflows/scripts/pre-release-checks.sh
+
+      - name: Setup Git author information
+        run: |
+          set -ue
+          git config --global user.email "${GIT_EMAIL}"
+          git config --global user.name "${GIT_USERNAME}"
+
+      - name: Checkout corresponding release branch
+        run: |
+          set -ue
+          echo "Switching to release branch '${TARGET_BRANCH}'"
+          if ! git checkout ${TARGET_BRANCH}; then
+            echo "::error::Checking out release branch '${TARGET_BRANCH}' for target version '${TARGET_VERSION}' (tagged '${RELEASE_TAG}') failed. Does it exist in repo?"
+            exit 1
+          fi
+
+      - name: Create VERSION information
+        run: |
+          set -ue
+          echo "Bumping version from $(cat VERSION) to ${TARGET_VERSION}"
+          echo "${TARGET_VERSION}" > VERSION
+          git commit -m "Bump version to ${TARGET_VERSION}" VERSION
+
+      - name: Generate new set of manifests
+        run: |
+          set -ue
+          make install-codegen-tools-local
+          make manifests-local VERSION=${TARGET_VERSION}
+          git diff
+          git commit manifests/ -m "Bump version to ${TARGET_VERSION}"
+
+      - name: Create the release tag
+        run: |
+          set -ue
+          echo "Creating release ${RELEASE_TAG}"
+          git tag ${RELEASE_TAG}
+
+      - name: Push changes to release branch
+        run: |
+          set -ue
+          git push origin ${TARGET_BRANCH}
+          git push origin ${RELEASE_TAG}
+
+      - name: Delete original request tag from repository
+        run: |
+          set -ue
+          git push --delete origin ${SOURCE_TAG}
+        if: ${{ always() }}
