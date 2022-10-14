@@ -1,0 +1,61 @@
+name: Init ArgoCD Release
+on:
+  workflow_dispatch:
+    inputs:
+      TARGET_BRANCH:
+        description: 'Which branch to checkout (ie release-2.5)'
+        required: true
+        type: string
+
+      TARGET_VERSION:
+        description: 'Which version to set and build manifests (ie 2.5.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-release:
+    permissions:
+      contents: write  # for peter-evans/create-pull-request to create branch
+      pull-requests: write  # for peter-evans/create-pull-request to create a PR
+    name: Automatically generate version and manifests on ${{ inputs.TARGET_BRANCH }}
+    runs-on: ubuntu-22.04
+    env:
+      TARGET_BRANCH: ${{ inputs.TARGET_BRANCH }}
+      TARGET_VERSION: ${{ inputs.TARGET_VERSION }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b  # v3.2.0
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ inputs.TARGET_BRANCH }}
+
+      - name: Create VERSION information
+        run: |
+          set -ue
+          echo "Bumping version from $(cat VERSION) to ${TARGET_VERSION}"
+          echo "${TARGET_VERSION}" > VERSION
+
+      - name: Generate new set of manifests
+        run: |
+          set -ue
+          make install-codegen-tools-local
+          make manifests-local VERSION=${TARGET_VERSION}
+          git diff
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@2b011faafdcbc9ceb11414d64d0573f37c774b04  # v4.2.3
+        with:
+          commit-message: "Bump version to ${{ inputs.TARGET_VERSION }}"
+          title: "Bump version to ${{ inputs.TARGET_VERSION }} on ${{ inputs.TARGET_BRANCH }} branch"
+          body: Updating VERSION and manifests to ${{ inputs.TARGET_VERSION }}
+          branch: update-version
+          branch-suffix: random
+          signoff: true
+          labels: release
+
+
