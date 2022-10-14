@@ -1,0 +1,88 @@
+name: Publish ArgoCD Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  release-argo-cd:
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    uses: ./.github/workflows/image-reuse.yaml
+    with:
+      image_tags: quay.io/34fathombelow/argocd:${{ github.ref_name }}
+      go-version: 1.19
+      platforms: linux/amd64,linux/arm64
+      push: true
+    secrets:
+      quay_username: ${{ secrets.RELEASE_QUAY_USERNAME }}
+      quay_password: ${{ secrets.RELEASE_QUAY_TOKEN }}
+  
+  argocd-provenance:
+      needs: [release-argo-cd]
+      permissions:
+        actions: read # for detecting the Github Actions environment.
+        id-token: write # for creating OIDC tokens for signing.
+        packages: write # for uploading attestations.
+      if: startsWith(github.ref, 'refs/tags/')
+      # Must be refernced by a tag. https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#referencing-the-slsa-generator
+      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.4.0
+      with:
+        image: quay.io/34fathombelow/argocd
+        digest: ${{ needs.release-argo-cd.outputs.image-digest }}
+        registry-username: ${{ secrets.RELEASE_QUAY_USERNAME }}
+      secrets:
+        registry-password: ${{ secrets.RELEASE_QUAY_TOKEN }}
+  
+
+
+#  Sbom-and-Signatures:
+#    name: Create Sbom and sign assets
+#    runs-on: ubuntu-22.04
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v3.2.0
+#        with:
+#          fetch-depth: 0
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#
+#      - name: Setup Golang
+#        uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
+#        with:
+#          go-version: ${{ env.GOLANG_VERSION }}
+#
+#      - name: Generate SBOM (spdx)
+#        id: spdx-builder
+#        env:
+#          # defines the spdx/spdx-sbom-generator version to use.
+#          SPDX_GEN_VERSION: v0.0.15
+#          # defines the sigs.k8s.io/bom version to use.
+#          SIGS_BOM_VERSION: v0.4.1
+#          # comma delimited list of project relative folders to inspect for package
+#          # managers (gomod, yarn, npm).
+#          PROJECT_FOLDERS: ".,./ui" 
+#          # full qualified name of the docker image to be inspected
+#          DOCKER_IMAGE: ${{env.IMAGE_NAMESPACE}}/argocd:v${{env.TARGET_VERSION}}
+#        run: |
+#          yarn install --cwd ./ui
+#          go install github.com/spdx/spdx-sbom-generator/cmd/generator@$SPDX_GEN_VERSION
+#          go install sigs.k8s.io/bom/cmd/bom@$SIGS_BOM_VERSION
+#
+#          # Generate SPDX for project dependencies analyzing package managers
+#          for folder in $(echo $PROJECT_FOLDERS | sed "s/,/ /g")
+#          do
+#            generator -p $folder -o /tmp
+#          done
+#
+#          # Generate SPDX for binaries analyzing the docker image
+#          if [[ ! -z $DOCKER_IMAGE ]]; then
+#            bom generate -o /tmp/bom-docker-image.spdx -i $DOCKER_IMAGE
+#          fi
+#
+#          cd /tmp && tar -zcf sbom.tar.gz *.spdx
+#

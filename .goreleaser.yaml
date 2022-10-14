@@ -1,0 +1,79 @@
+project_name: argocd
+
+before:
+  hooks:
+    - go mod download
+    - make build-ui
+
+builds:
+  - id: argocd-cli
+    main: ./cmd
+    binary: argocd
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -v
+    ldflags:
+    - -X github.com/argoproj/argo-cd/v2/common.version={{ .Version }}
+    - -X github.com/argoproj/argo-cd/v2/common.buildDate={{ .Date }}
+    - -X github.com/argoproj/argo-cd/v2/common.gitCommit={{ .FullCommit }}
+    - -X github.com/argoproj/argo-cd/v2/common.gitTreeState=Kubefun  # set this{{ .Env.GIT_TREE_STATE }}
+    - -X github.com/argoproj/argo-cd/v2/common.kubectlVersion=1.24.6 # set this{{ .Env.KUBECTL_VERSION }}
+    - -extldflags="-static"
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+    - amd64
+    - arm64
+    - s390x
+    - ppc64le
+    ignore:
+    - goos: darwin
+      goarch: s390x
+    - goos: darmwin
+      goarch: ppc64le
+    - goos: windows
+      goarch: s390x
+    - goos: windows
+      goarch: ppc64le
+    - goos: windows
+      goarch: arm64
+
+archives:
+  - id: argocd-archive
+    builds: 
+    - argocd-cli
+    name_template: |-
+      {{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    format: tar.gz
+    format_overrides:
+    - goos: windows
+      format: zip
+    files:
+      - none* # We can add files to the archive, such as LICENSE or CHANGELOG. Files will be placed into each tar.gz/zip
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+release:
+  prerelease: auto
+
+snapshot: #### To be removed for PR
+  name_template: "2.6.0"
+
+changelog:
+  use:
+    github
+  sort: asc
+  abbrev: 5
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
