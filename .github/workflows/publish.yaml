@@ -45,7 +45,7 @@ jobs:
   goreleaser:
     needs: [release-argo-cd]
     permissions:
-      contents: read
+      contents: write
       packages: write
     runs-on: ubuntu-22.04
     outputs:
