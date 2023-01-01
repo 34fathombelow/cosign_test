@@ -38,7 +38,7 @@ jobs:
       with:
         image: quay.io/34fathombelow/argocd
         digest: ${{ needs.release-argo-cd.outputs.image-digest }}
-        registry-username: ${{ secrets.RELEASE_QUAY_USERNAME }}
+        registry-username: "${{ secrets.RELEASE_QUAY_USERNAME }}"
       secrets:
         registry-password: ${{ secrets.RELEASE_QUAY_TOKEN }}
 
