@@ -65,6 +65,7 @@ jobs:
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@8f67e590f2d095516493f017008adc464e63adb1 # v4.1.0
+        id: run-goreleaser
         with:
           version: latest
           args: release --rm-dist
