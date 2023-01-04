@@ -60,6 +60,37 @@ checksum:
 
 release:
   prerelease: auto
+  draft: false
+  header: |
+    ## Quick Start
+    
+    ### Non-HA:
+    
+    \`\`\`shell
+    kubectl create namespace argocd
+    kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/{{.Version}}/manifests/install.yaml
+    \`\`\`
+    
+    ### HA:
+    
+    \`\`\`shell
+    kubectl create namespace argocd
+    kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/{{.Version}}/manifests/ha/install.yaml
+    \`\`\`
+    
+    ## Release signatures
+    
+    All Argo CD container images and CLI binaries are signed by cosign. See the [documentation](https://argo-cd.readthedocs.io/en/stable/operator-manual/signed-release-assets) on how to verify the signatures.
+    \`\`\`shell
+    -----BEGIN PUBLIC KEY-----
+    MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEesHEB7vX5Y2RxXypjMy1nI1z7iRG
+    JI9/gt/sYqzpsa65aaNP4npM43DDxoIy/MQBo9s/mxGxmA+8UXeDpVC9vw==
+    -----END PUBLIC KEY-----
+    \`\`\`
+    
+    ## Upgrading
+    
+    If upgrading from a different minor version, be sure to read the [upgrading](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/overview/) documentation.
 
 snapshot: #### To be removed for PR
   name_template: "2.6.0"
@@ -68,10 +99,24 @@ changelog:
   use:
     github
   sort: asc
-  abbrev: 5
+  abbrev: 0
+  groups: # Regex use RE2 syntax as defined here: https://github.com/google/re2/wiki/Syntax.
+    - title: 'Features'
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 100
+    - title: 'Bug fixes'
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 200
+    - title: 'Documentation'
+      regexp: '^.*?docs(\([[:word:]]+\))??!?:.+$'
+      order: 300
+    - title: Dependency updates
+      regexp: '^.*?(feat|fix|chore)\(deps?.+\)!?:.+$'
+      order: 400
+    - title: Other work
+      order: 999
   filters:
     exclude:
-      - '^docs:'
       - '^test:'
 
 

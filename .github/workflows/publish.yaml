@@ -14,12 +14,12 @@ jobs:
   release-argo-cd:
     permissions:
       contents: read
-      id-token: write
-      packages: write
+      id-token: write # for creating OIDC tokens for signing.
+      packages: write # used to push images to `ghcr.io` if used.
     uses: ./.github/workflows/image-reuse.yaml
     with:
       image_tags: quay.io/34fathombelow/argocd:${{ github.ref_name }}
-      go-version: 1.18 #Note: Can not use env variables to set go-version https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations
+      go-version: 1.18 # Note: cannot use env variables to set go-version (https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations)
       platforms: linux/amd64,linux/arm64
       push: true
     secrets:
@@ -31,22 +31,20 @@ jobs:
       permissions:
         actions: read # for detecting the Github Actions environment.
         id-token: write # for creating OIDC tokens for signing.
-        packages: write # for uploading attestations.
-      if: startsWith(github.ref, 'refs/tags/')
+        packages: write # for uploading attestations. (https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#known-issues)
       # Must be refernced by a tag. https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#referencing-the-slsa-generator
       uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.4.0
       with:
         image: quay.io/34fathombelow/argocd
         digest: ${{ needs.release-argo-cd.outputs.image-digest }}
-        registry-username: ${{ github.actor }} # Will need to have user on quay or use username. Secret cannot be passed as a sting.
+        registry-username: ${{ github.actor }} # Should be moved into a secret when #1409 is merged (github.com/slsa-framework/slsa-github-generator/pull/1409)
       secrets:
         registry-password: ${{ secrets.RELEASE_QUAY_TOKEN }}
 
   goreleaser:
     needs: [release-argo-cd]
     permissions:
-      contents: write
-      packages: write
+      contents: write # used for uploading assets
     runs-on: ubuntu-22.04
     outputs:
       hashes: ${{ steps.hash.outputs.hashes }}
@@ -89,13 +87,14 @@ jobs:
   provenance:
     needs: [goreleaser]
     permissions:
-      actions: read # To read the workflow path.
-      id-token: write # To sign the provenance.
-      contents: write # To add assets to a release.
+      actions: read # for detecting the Github Actions environment
+      id-token: write # Needed for provenance signing and ID
+      contents: write #  Needed for release uploads
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.4.0
     with:
       base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
-      upload-assets: true # upload to a new release
+      provenance-name: "argocd-${{ github.ref_name }}-cli.intoto.jsonl"
+      upload-assets: true
 
 
 #  Sbom-and-Signatures:
