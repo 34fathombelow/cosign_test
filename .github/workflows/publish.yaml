@@ -60,6 +60,12 @@ jobs:
         with:
           go-version: ${{ env.GOLANG_VERSION }}
 
+      - name: Set environment variables for ldflags
+        id: set_ldflag
+        run: |
+          echo "KUBECTL_VERSION=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev)" >> $GITHUB_ENV
+          echo "GIT_TREE_STATE=$(if [ -z "`git status --porcelain`" ]; then echo "clean" ; else echo "dirty"; fi)" >> $GITHUB_ENV
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@8f67e590f2d095516493f017008adc464e63adb1 # v4.1.0
         id: run-goreleaser
@@ -68,8 +74,8 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          KUBECTL_VERSION: $(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev)
-          GIT_TREE_STATE: $(if [ -z "`git status --porcelain`" ]; then echo "clean" ; else echo "dirty"; fi)
+          KUBECTL_VERSION: ${{ env.KUBECTL_VERSION }} 
+          GIT_TREE_STATE: ${{ env.GIT_TREE_STATE }}
 
       - name: Generate subject
         id: hash
