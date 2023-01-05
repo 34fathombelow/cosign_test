@@ -42,7 +42,6 @@ jobs:
         registry-password: ${{ secrets.RELEASE_QUAY_TOKEN }}
 
   goreleaser:
-    needs: [release-argo-cd]
     permissions:
       contents: write # used for uploading assets
     runs-on: ubuntu-22.04
@@ -69,6 +68,8 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KUBECTL_VERSION: $(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev)
+          GIT_TREE_STATE: $(if [ -z "`git status --porcelain`" ]; then echo "clean" ; else echo "dirty"; fi)
 
       - name: Generate subject
         id: hash

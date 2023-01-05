@@ -17,8 +17,8 @@ builds:
     - -X github.com/argoproj/argo-cd/v2/common.version={{ .Version }}
     - -X github.com/argoproj/argo-cd/v2/common.buildDate={{ .Date }}
     - -X github.com/argoproj/argo-cd/v2/common.gitCommit={{ .FullCommit }}
-    - -X github.com/argoproj/argo-cd/v2/common.gitTreeState=Kubefun  # set this{{ .Env.GIT_TREE_STATE }}
-    - -X github.com/argoproj/argo-cd/v2/common.kubectlVersion=1.24.6 # set this{{ .Env.KUBECTL_VERSION }}
+    - -X github.com/argoproj/argo-cd/v2/common.gitTreeState={{ .Env.GIT_TREE_STATE }}
+    - -X github.com/argoproj/argo-cd/v2/common.kubectlVersion={{ .Env.KUBECTL_VERSION }}
     - -extldflags="-static"
     goos:
       - linux
