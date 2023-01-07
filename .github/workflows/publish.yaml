@@ -148,7 +148,7 @@ jobs:
         run: |
           git tag -f stable ${{ github.ref_name }}
           git push -f origin stable
-        if: ${{ env.TAG_STABLE == true }}
+        if: ${{ env.TAG_STABLE == 'true' }}
 
 
 
