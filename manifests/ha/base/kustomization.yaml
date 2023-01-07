@@ -9,8 +9,11 @@ patchesStrategicMerge:
 
 
 images:
+- name: quay.io/34fathombelow/argocd
+  newName: quay.io/34fathombelow/argocd
+  newTag: latest
 - name: quay.io/argoproj/argocd
-  newName: quay.io/argoproj/argocd
+  newName: quay.io/34fathombelow/argocd
   newTag: latest
 resources:
 - ../../base/application-controller

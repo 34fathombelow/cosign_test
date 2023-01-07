@@ -27,8 +27,8 @@ builds:
     goarch:
     - amd64
     - arm64
-    - s390x
-    - ppc64le
+   # - s390x
+   # - ppc64le
     ignore:
     - goos: darwin
       goarch: s390x
