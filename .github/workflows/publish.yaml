@@ -174,9 +174,9 @@ jobs:
       - name: Create PR to update VERSION on master branch
         uses: peter-evans/create-pull-request@2b011faafdcbc9ceb11414d64d0573f37c774b04 # v4.2.3
         with:
-          commit-message: Bump version in master to ${{ env.VERSION }}
-          title: "chore: Bump version in master to ${{ env.VERSION }}"
-          body: All images built from master should indicate that we are on track for ${{ env.VERSION }}
+          commit-message: Bump version in master
+          title: "chore: Bump version in master"
+          body: All images built from master should indicate which version we are on track for. 
           signoff: true
           branch: update-version
           branch-suffix: random
