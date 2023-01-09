@@ -180,7 +180,7 @@ jobs:
           signoff: true
           branch: update-version
           branch-suffix: random
-          base: master
+          base: main ##### Make sure to change this for PR
         if: ${{ env.UPDATE_VERSION == 'true' }}
 
 
