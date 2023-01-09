@@ -118,6 +118,7 @@ changelog:
   filters:
     exclude:
       - '^test:'
+      - '^BUMP'
 
 
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
