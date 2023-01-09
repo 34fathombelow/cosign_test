@@ -131,8 +131,8 @@ jobs:
           git fetch --prune --tags --force
 
           LATEST_TAG=$(git tag --sort version:refname | tail -n1)
-          PRE_RELEASE=true
 
+          PRE_RELEASE=false
           # Check if latest tag is a pre-release
           if echo $LATEST_TAG | grep -E -- '-rc[0-9]+$';then
             PRE_RELEASE=true
@@ -159,11 +159,11 @@ jobs:
           if echo "$VERSION_REF" | grep -E -- '^[0-9]+\.[0-9]+\.0$';then
             VERSION=$(awk 'BEGIN {FS=OFS="."} {$2++; print}' <<< "${VERSION_REF}")
             echo "Updating VERSION to: $VERSION"
-            echo "UPDATE_VERSION=true" >> GITHUB_ENV
-            echo "NEW_VERSION=$VERSION" >> GITHUB_ENV
+            echo "UPDATE_VERSION=true" >> $GITHUB_ENV
+            echo "NEW_VERSION=$VERSION" >> $GITHUB_ENV
           else
             echo "Not updating VERSION"
-            echo "UPDATE_VERSION=false" >> GITHUB_ENV
+            echo "UPDATE_VERSION=false" >> $GITHUB_ENV
           fi
 
       - name: Update VERSION on master branch
