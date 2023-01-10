@@ -244,13 +244,14 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign sign-blob --output-certificate=/tmp/sbom.tar.gz.ca \
-          --output-signature=/tmp/sbom.tar.sig \
+          cosign sign-blob \
             -a "repo=${{ github.repository }}" \
             -a "workflow=${{ github.workflow }}" \
             -a "sha=${{ github.sha }}" \
             -a "run_id=${{ github.run_id }}" \
             -a "run_attempt=${{ github.run_attempt }}" \
+            --output-certificate=/tmp/sbom.tar.gz.ca \
+            --output-signature=/tmp/sbom.tar.gz.sig \
             /tmp/sbom.tar.gz
 
       - name: Upload SBOM and signature assets
