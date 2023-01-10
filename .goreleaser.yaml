@@ -14,36 +14,36 @@ builds:
     flags:
       - -v
     ldflags:
-    - -X github.com/argoproj/argo-cd/v2/common.version={{ .Version }}
-    - -X github.com/argoproj/argo-cd/v2/common.buildDate={{ .Date }}
-    - -X github.com/argoproj/argo-cd/v2/common.gitCommit={{ .FullCommit }}
-    - -X github.com/argoproj/argo-cd/v2/common.gitTreeState={{ .Env.GIT_TREE_STATE }}
-    - -X github.com/argoproj/argo-cd/v2/common.kubectlVersion={{ .Env.KUBECTL_VERSION }}
-    - -extldflags="-static"
+      - -X github.com/argoproj/argo-cd/v2/common.version={{ .Version }}
+      - -X github.com/argoproj/argo-cd/v2/common.buildDate={{ .Date }}
+      - -X github.com/argoproj/argo-cd/v2/common.gitCommit={{ .FullCommit }}
+      - -X github.com/argoproj/argo-cd/v2/common.gitTreeState={{ .Env.GIT_TREE_STATE }}
+      - -X github.com/argoproj/argo-cd/v2/common.kubectlVersion={{ .Env.KUBECTL_VERSION }}
+      - -extldflags="-static"
     goos:
       - linux
-      #- darwin
-      #- windows
+      - darwin
+      - windows
     goarch:
-    - amd64
-   # - arm64
-   # - s390x
-   # - ppc64le
+      - amd64
+      - arm64
+      - s390x
+      - ppc64le
     ignore:
-    - goos: darwin
-      goarch: s390x
-    - goos: darmwin
-      goarch: ppc64le
-    - goos: windows
-      goarch: s390x
-    - goos: windows
-      goarch: ppc64le
-    - goos: windows
-      goarch: arm64
+      - goos: darwin
+        goarch: s390x
+      - goos: darmwin
+        goarch: ppc64le
+      - goos: windows
+        goarch: s390x
+      - goos: windows
+        goarch: ppc64le
+      - goos: windows
+        goarch: arm64
 
 archives:
   - id: argocd-archive
-    builds: 
+    builds:
     - argocd-cli
     name_template: |-
       {{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}
@@ -118,7 +118,7 @@ changelog:
   filters:
     exclude:
       - '^test:'
-      - '^BUMP'
+      - '^BUMP*'
 
 
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
