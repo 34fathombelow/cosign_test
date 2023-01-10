@@ -210,20 +210,13 @@ jobs:
         with:
           cosign-release: 'v1.13.1'
 
-      - name: Login to Quay.io
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
-        with:
-          registry: quay.io
-          username: ${{ secrets.RELEASE_QUAY_USERNAME }}
-          password: ${{ secrets.RELEASE_QUAY_TOKEN }}
-
       - name: Generate SBOM (spdx)
         id: spdx-builder
         env:
           # defines the spdx/spdx-sbom-generator version to use.
-          SPDX_GEN_VERSION: v0.0.15
+          SPDX_GEN_VERSION: v0.0.13
           # defines the sigs.k8s.io/bom version to use.
-          SIGS_BOM_VERSION: v0.4.1
+          SIGS_BOM_VERSION: v0.2.1
           # comma delimited list of project relative folders to inspect for package
           # managers (gomod, yarn, npm).
           PROJECT_FOLDERS: ".,./ui"
