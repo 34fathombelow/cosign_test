@@ -1,4 +1,4 @@
-name: Create ArgoCD Release
+name: Init ArgoCD Release
 on:
   push:
     tags:
