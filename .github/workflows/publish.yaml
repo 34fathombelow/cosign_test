@@ -9,17 +9,18 @@ permissions:
 
 env:
   GOLANG_VERSION: '1.18'
+  IMAGE_NAMESPACE: quay.io/34fathombelow
 
 jobs:
-  release-argo-cd:
+  argocd-image:
     permissions:
       contents: read
       id-token: write # for creating OIDC tokens for signing.
       packages: write # used to push images to `ghcr.io` if used.
     uses: ./.github/workflows/image-reuse.yaml
     with:
-      image_tags: quay.io/34fathombelow/argocd:${{ github.ref_name }}
-      go-version: 1.18 # Note: cannot use env variables to set go-version (https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations)
+      image_tags: $IMAGE_NAMESPACE/argocd:${{ github.ref_name }}
+      go-version: $GOLANG_VERSION # Note: cannot use env variables to set go-version (https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations)
       platforms: linux/amd64,linux/arm64,linux/s390x,linux/ppc64le
       push: true
     secrets:
@@ -27,7 +28,7 @@ jobs:
       quay_password: ${{ secrets.RELEASE_QUAY_TOKEN }}
   
   argocd-provenance:
-      needs: [release-argo-cd]
+      needs: [argocd-image]
       permissions:
         actions: read # for detecting the Github Actions environment.
         id-token: write # for creating OIDC tokens for signing.
@@ -35,8 +36,8 @@ jobs:
       # Must be refernced by a tag. https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#referencing-the-slsa-generator
       uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.4.0
       with:
-        image: quay.io/34fathombelow/argocd
-        digest: ${{ needs.release-argo-cd.outputs.image-digest }}
+        image: $IMAGE_NAMESPACE/argocd
+        digest: ${{ needs.argocd-image.outputs.image-digest }}
         registry-username: ${{ github.actor }} # Should be moved into a secret when #1409 is merged (github.com/slsa-framework/slsa-github-generator/pull/1409)
       secrets:
         registry-password: ${{ secrets.RELEASE_QUAY_TOKEN }}
@@ -103,11 +104,83 @@ jobs:
       provenance-name: "argocd-${{ github.ref_name }}-cli.intoto.jsonl"
       upload-assets: true
 
+  generate-sbom:
+    name: Create Sbom and sign assets
+    needs:
+      - argocd-image
+    permissions:
+      contents: write # Needed for release uploads
+      id-token: write # Needed for signing Sbom
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v3.2.0
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Golang
+        uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@9becc617647dfa20ae7b1151972e9b3a2c338a2b # v2.8.1
+        with:
+          cosign-release: 'v1.13.1'
+
+      - name: Generate SBOM (spdx)
+        id: spdx-builder
+        env:
+          # defines the spdx/spdx-sbom-generator version to use.
+          SPDX_GEN_VERSION: v0.0.13
+          # defines the sigs.k8s.io/bom version to use.
+          SIGS_BOM_VERSION: v0.2.1
+          # comma delimited list of project relative folders to inspect for package
+          # managers (gomod, yarn, npm).
+          PROJECT_FOLDERS: ".,./ui"
+          # full qualified name of the docker image to be inspected
+          DOCKER_IMAGE: ${{ env.IMAGE_NAMESPACE }}/argocd:${{ github.ref_name }}
+        run: |
+          yarn install --cwd ./ui
+          go install github.com/spdx/spdx-sbom-generator/cmd/generator@$SPDX_GEN_VERSION
+          go install sigs.k8s.io/bom/cmd/bom@$SIGS_BOM_VERSION
+
+          # Generate SPDX for project dependencies analyzing package managers
+          for folder in $(echo $PROJECT_FOLDERS | sed "s/,/ /g")
+          do
+            generator -p $folder -o /tmp
+          done
+
+          # Generate SPDX for binaries analyzing the docker image
+          if [[ ! -z $DOCKER_IMAGE ]]; then
+            bom generate -o /tmp/bom-docker-image.spdx -i $DOCKER_IMAGE
+          fi
+
+          cd /tmp && tar -zcf sbom.tar.gz *.spdx
+
+      - name: Sign SBOM
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          cosign sign-blob \
+            --output-certificate=/tmp/sbom.tar.gz.pem \
+            --output-signature=/tmp/sbom.tar.gz.sig \
+            /tmp/sbom.tar.gz
+
+      - name: Upload SBOM and signature assets
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v0.1.15
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            /tmp/sbom.tar.*
+
   post-release:
     needs:
-      - release-argo-cd
+      - argocd-image
       - goreleaser
-      - sbom-and-signatures
+      - generate-sbom
     permissions:
       contents: write # Needed to push commit to update stable tag
       pull-requests: write # Needed to create PR for VERSION update.
@@ -183,77 +256,3 @@ jobs:
           branch-suffix: random
           base: main ##### Make sure to change this for PR
         if: ${{ env.UPDATE_VERSION == 'true' }}
-
-  sbom-and-signatures:
-    name: Create Sbom and sign assets
-    needs:
-      - release-argo-cd
-      - goreleaser
-    permissions:
-      contents: write # Needed for release uploads
-      id-token: write # Needed for signing Sbom
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v3.2.0
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Golang
-        uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
-        with:
-          go-version: ${{ env.GOLANG_VERSION }}
-
-      - name: Install cosign
-        uses: sigstore/cosign-installer@9becc617647dfa20ae7b1151972e9b3a2c338a2b # v2.8.1
-        with:
-          cosign-release: 'v1.13.1'
-
-      - name: Generate SBOM (spdx)
-        id: spdx-builder
-        env:
-          # defines the spdx/spdx-sbom-generator version to use.
-          SPDX_GEN_VERSION: v0.0.13
-          # defines the sigs.k8s.io/bom version to use.
-          SIGS_BOM_VERSION: v0.2.1
-          # comma delimited list of project relative folders to inspect for package
-          # managers (gomod, yarn, npm).
-          PROJECT_FOLDERS: ".,./ui"
-          # full qualified name of the docker image to be inspected
-          DOCKER_IMAGE: quay.io/34fathombelow/argocd:${{ github.ref_name }}
-        run: |
-          yarn install --cwd ./ui
-          go install github.com/spdx/spdx-sbom-generator/cmd/generator@$SPDX_GEN_VERSION
-          go install sigs.k8s.io/bom/cmd/bom@$SIGS_BOM_VERSION
-
-          # Generate SPDX for project dependencies analyzing package managers
-          for folder in $(echo $PROJECT_FOLDERS | sed "s/,/ /g")
-          do
-            generator -p $folder -o /tmp
-          done
-
-          # Generate SPDX for binaries analyzing the docker image
-          if [[ ! -z $DOCKER_IMAGE ]]; then
-            bom generate -o /tmp/bom-docker-image.spdx -i $DOCKER_IMAGE
-          fi
-
-          cd /tmp && tar -zcf sbom.tar.gz *.spdx
-
-      - name: Sign SBOM
-        env:
-          COSIGN_EXPERIMENTAL: "true"
-        run: |
-          cosign sign-blob \
-            --output-certificate=/tmp/sbom.tar.gz.ca \
-            --output-signature=/tmp/sbom.tar.gz.sig \
-            /tmp/sbom.tar.gz
-
-      - name: Upload SBOM and signature assets
-        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v0.1.15
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          files: |
-            /tmp/sbom.tar.*
-            
