@@ -9,7 +9,6 @@ permissions:
 
 env:
   GOLANG_VERSION: '1.18'
-  IMAGE_NAMESPACE: quay.io/34fathombelow
 
 jobs:
   argocd-image:
@@ -19,8 +18,8 @@ jobs:
       packages: write # used to push images to `ghcr.io` if used.
     uses: ./.github/workflows/image-reuse.yaml
     with:
-      image_tags: $IMAGE_NAMESPACE/argocd:${{ github.ref_name }}
-      go-version: $GOLANG_VERSION # Note: cannot use env variables to set go-version (https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations)
+      image_tags: quay.io/34fathombelow/argocd:${{ github.ref_name }}
+      go-version: 1.18 # Note: cannot use env variables to set go-version (https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations)
       platforms: linux/amd64,linux/arm64,linux/s390x,linux/ppc64le
       push: true
     secrets:
@@ -36,7 +35,7 @@ jobs:
       # Must be refernced by a tag. https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#referencing-the-slsa-generator
       uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.4.0
       with:
-        image: $IMAGE_NAMESPACE/argocd
+        image: quay.io/34fathombelow/argocd
         digest: ${{ needs.argocd-image.outputs.image-digest }}
         registry-username: ${{ github.actor }} # Should be moved into a secret when #1409 is merged (github.com/slsa-framework/slsa-github-generator/pull/1409)
       secrets:
@@ -140,7 +139,7 @@ jobs:
           # managers (gomod, yarn, npm).
           PROJECT_FOLDERS: ".,./ui"
           # full qualified name of the docker image to be inspected
-          DOCKER_IMAGE: ${{ env.IMAGE_NAMESPACE }}/argocd:${{ github.ref_name }}
+          DOCKER_IMAGE: quay.io/34fathombelow/argocd:${{ github.ref_name }}
         run: |
           yarn install --cwd ./ui
           go install github.com/spdx/spdx-sbom-generator/cmd/generator@$SPDX_GEN_VERSION
