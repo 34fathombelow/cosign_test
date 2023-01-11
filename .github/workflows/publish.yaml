@@ -71,7 +71,7 @@ jobs:
         id: run-goreleaser
         with:
           version: latest
-          args: release --rm-dist
+          args: release --rm-dist --timeout 45m
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           KUBECTL_VERSION: ${{ env.KUBECTL_VERSION }} 
