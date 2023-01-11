@@ -86,7 +86,7 @@ jobs:
           push: ${{ inputs.push }}
           tags: ${{ inputs.image_tags }}
  
-      - name: Sign container image
+      - name: Sign container images on Quay
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
@@ -97,3 +97,17 @@ jobs:
             -a "run_id=${{ github.run_id }}" \
             -a "run_attempt=${{ github.run_attempt }}" \
             quay.io/34fathombelow/argocd@${{ steps.image.outputs.digest }}
+        if: contains( inputs.image_tags, 'quay' )
+
+      - name: Sign container images on GHCR
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          cosign sign \
+            -a "repo=${{ github.repository }}" \
+            -a "workflow=${{ github.workflow }}" \
+            -a "sha=${{ github.sha }}" \
+            -a "run_id=${{ github.run_id }}" \
+            -a "run_attempt=${{ github.run_attempt }}" \
+            ghcr.io/34fathombelow/argocd@${{ steps.image.outputs.digest }}
+        if: contains( inputs.image_tags, 'ghrc' )
