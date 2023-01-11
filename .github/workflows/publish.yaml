@@ -26,7 +26,7 @@ jobs:
       quay_username: ${{ secrets.RELEASE_QUAY_USERNAME }}
       quay_password: ${{ secrets.RELEASE_QUAY_TOKEN }}
   
-  argocd-provenance:
+  argocd-image-provenance:
       needs: [argocd-image]
       permissions:
         actions: read # for detecting the Github Actions environment.
@@ -91,7 +91,7 @@ jobs:
           fi
           echo "hashes=$hashes" >> $GITHUB_OUTPUT
 
-  provenance:
+  goreleaser-provenance:
     needs: [goreleaser]
     permissions:
       actions: read # for detecting the Github Actions environment
@@ -100,7 +100,7 @@ jobs:
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.4.0
     with:
       base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
-      provenance-name: "argocd-${{ github.ref_name }}-cli.intoto.jsonl"
+      provenance-name: "argocd_${{ github.ref_name }}_cli.intoto.jsonl"
       upload-assets: true
 
   generate-sbom:
