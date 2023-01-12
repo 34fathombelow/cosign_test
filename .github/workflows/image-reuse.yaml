@@ -75,7 +75,7 @@ jobs:
           registry: ghcr.io
           username: ${{ secrets.ghcr_username }}
           password: ${{ secrets.ghcr_password }}
-        if: (contains( inputs.image_tags, 'ghrc' ) && inputs.push == 'true'}
+        if: (contains( inputs.image_tags, 'ghrc' ) && inputs.push == 'true')
 
       - name: Build and push container images
         id: image
