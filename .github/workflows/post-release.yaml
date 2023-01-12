@@ -1,11 +1,12 @@
 name: Post Release processes
 on:
-  workflow_run:
-    workflows:
-      - 'Publish ArgoCD Release'
+  release:
     types:
-      - completed
-
+      - published
+      - created
+      - released
+      - edited
+      - deleted
 permissions:
   contents: read
 
