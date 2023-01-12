@@ -1,8 +1,12 @@
 name: Post Release processes
 on:
   release:
-    types: [published]
-
+    types:
+      - published
+      - created
+      - released
+      - edited
+      - deleted
 permissions:
   contents: read
 
