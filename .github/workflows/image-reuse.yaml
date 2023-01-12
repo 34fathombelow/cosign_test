@@ -67,7 +67,7 @@ jobs:
           registry: quay.io
           username: ${{ secrets.quay_username }}
           password: ${{ secrets.quay_password }}
-        if: ${{ contains(inputs.image_tags, 'quay') }} && ${{ inputs.push == 'true' }}
+        if: contains(inputs.image_tags, 'quay') && ${{ inputs.push == 'true' }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
@@ -75,7 +75,7 @@ jobs:
           registry: ghcr.io
           username: ${{ secrets.ghcr_username }}
           password: ${{ secrets.ghcr_password }}
-        if: ${{ contains(inputs.image_tags, 'ghcr') }} && ${{ inputs.push == 'true' }}
+        if: contains(inputs.image_tags, 'ghcr') && ${{ inputs.push == 'true' }}
 
       - name: Build and push container images
         id: image
@@ -97,7 +97,7 @@ jobs:
             -a "run_id=${{ github.run_id }}" \
             -a "run_attempt=${{ github.run_attempt }}" \
             quay.io/34fathombelow/argocd@${{ steps.image.outputs.digest }}
-        if: ${{ contains(inputs.image_tags, 'quay') }} && ${{ inputs.push == 'true' }}
+        if: contains(inputs.image_tags, 'quay') && ${{ inputs.push == 'true' }}
 
       - name: Sign container images on GHCR
         env:
@@ -110,4 +110,4 @@ jobs:
             -a "run_id=${{ github.run_id }}" \
             -a "run_attempt=${{ github.run_attempt }}" \
             ghcr.io/34fathombelow/argocd@${{ steps.image.outputs.digest }}
-        if: ${{ contains(inputs.image_tags, 'ghcr') }} && ${{ inputs.push == 'true' }}
+        if: contains(inputs.image_tags, 'ghcr') && ${{ inputs.push == 'true' }}
