@@ -13,6 +13,7 @@ env:
 jobs:
   argocd-image:
     permissions:
+      contents: read
       id-token: write # for creating OIDC tokens for signing.
       packages: write # used to push images to `ghcr.io` if used.
     uses: ./.github/workflows/image-reuse.yaml
