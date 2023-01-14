@@ -50,7 +50,6 @@ permissions:
 jobs:
   publish:
     permissions:
-      contents: write
       packages: write # Used to push images to `ghcr.io` if used.
       id-token: write # Needed to create an OIDC token for keyless signing
     runs-on: ubuntu-22.04
