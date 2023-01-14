@@ -123,7 +123,8 @@ jobs:
         with:
           username: ${{ secrets.docker_username }}
           password: ${{ secrets.docker_password }}
-        if: contains((${{ env.TAGS }}, 'docker') && inputs.push )
+        if: contains( env.TAGS, 'docker') && inputs.push
+        # if: contains(inputs.image_tags, 'quay') && inputs.push == true
 
       - name: Build and push container image
         id: image
