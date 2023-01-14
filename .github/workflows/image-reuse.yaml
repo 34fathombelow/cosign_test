@@ -50,6 +50,7 @@ permissions:
 jobs:
   publish:
     permissions:
+      contents: write
       packages: write # Used to push images to `ghcr.io` if used.
       id-token: write # Needed to create an OIDC token for keyless signing
     runs-on: ubuntu-22.04
@@ -111,7 +112,6 @@ jobs:
           username: ${{ secrets.quay_username }}
           password: ${{ secrets.quay_password }}
         if: ${{ inputs.quay_image_name && inputs.push }}
-     #  if: contains(inputs.image_tags, 'ghcr') && inputs.push == true
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
