@@ -110,7 +110,7 @@ jobs:
           registry: quay.io
           username: ${{ secrets.quay_username }}
           password: ${{ secrets.quay_password }}
-        if: ${{ contains(env.TAGS, 'quay') && inputs.push == true }}
+        if: ${{ contains($TAGS, 'quay') && inputs.push == true }}
       #  if: contains(inputs.image_tags, 'ghcr') && inputs.push == true
 
       - name: Login to GitHub Container Registry
@@ -119,14 +119,14 @@ jobs:
           registry: ghcr.io
           username: ${{ secrets.ghcr_username }}
           password: ${{ secrets.ghcr_password }}
-        if: ${{ contains(env.TAGS, 'ghcr') && inputs.push == true }}
+        if: ${{ contains($TAGS, 'ghcr') && inputs.push == true }}
 
       - name: Login to dockerhub Container Registry
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.docker_username }}
           password: ${{ secrets.docker_password }}
-        if: ${{ contains(env.TAGS, 'docker') && inputs.push == true }}
+        if: ${{ contains($TAGS, 'docker') && inputs.push == true }}
 
       - name: Build and push container image
         id: image
