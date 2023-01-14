@@ -2,11 +2,17 @@ name: Publish and Sign Container Image
 on:
   workflow_call:
     inputs:
-      image_tags:
-        required: true
-        type: string
       go-version:
         required: true
+        type: string
+      quay_image_namespace:
+        required: false
+        type: string
+      ghcr_image_namespace:
+        required: false
+        type: string
+      docker_image_namespace:
+        required: false
         type: string
       platforms:
         required: true
@@ -15,11 +21,14 @@ on:
         required: true
         type: boolean
         default: false
+      target:
+        required: false
+        type: string
     secrets:
       quay_username:
-        required: true
+        required: false
       quay_password:
-        required: true
+        required: false
       ghcr_username:
         required: false
       ghcr_password:
@@ -77,6 +86,17 @@ jobs:
           password: ${{ secrets.ghcr_password }}
         if: contains(inputs.image_tags, 'ghcr') && inputs.push == true
 
+      - name: set tags for container image
+        run: |
+          IMAGE_VARS=$(for s in \
+          ${{ inputs.quay_image_namespace }} \
+          ${{ inputs.ghcr_image_namespace }} \
+          ${{ inputs.docker_image_namespace }}; do
+          echo -n "${s}",;done | sed 's/,$//')
+
+          echo "TAGS=$IMAGE_VARS" >> $GITHUB_ENV
+          echo $TAGS
+
       - name: Build and push container images
         id: image
         uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5 #v3.2.0
@@ -84,7 +104,8 @@ jobs:
           context: .
           platforms: ${{ inputs.platforms }}
           push: ${{ inputs.push }}
-          tags: ${{ inputs.image_tags }}
+          tags: ${{ env.TAGS }}
+          target: ${{ inputs.target }}
  
       - name: Sign container images on Quay
         env:
