@@ -121,7 +121,7 @@ jobs:
         if: ${{ inputs.ghcr_image_name && inputs.push }}
 
       - name: Login to dockerhub Container Registry
-        uses: docker/login-action@37abcedcc1da61a57767b7588cb9d03eb57e28b3 # v3.3.0
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
         with:
           username: ${{ secrets.docker_username }}
           password: ${{ secrets.docker_password }}
