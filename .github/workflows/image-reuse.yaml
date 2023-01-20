@@ -136,6 +136,8 @@ jobs:
           push: ${{ inputs.push }}
           tags: ${{ env.TAGS }}
           target: ${{ inputs.target }}
+          provenance: false
+          sbom: false
  
       - name: Sign container images
         env:
