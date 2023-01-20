@@ -18,7 +18,7 @@ permissions:
 jobs:
   prepare-release:
     permissions:
-      contents: write # To push changes to release branch
+      contents: write  # To push changes to release branch
     name: Perform automatic pre-release on ${{ github.ref }}
   # if: github.repository == 'argoproj/argo-cd'
     runs-on: ubuntu-22.04
@@ -31,16 +31,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v3.2.0
+        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b  # v3.2.0
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      #- name: Check if the published tag is well formed and setup vars
+      #  name: Check if the published tag is well formed and setup vars
       #  id: vars
       #  run: ./.github/workflows/scripts/pre-release-checks.sh
-
-
 
       - name: Checkout corresponding release branch
         run: |
