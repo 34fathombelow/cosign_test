@@ -56,7 +56,7 @@ jobs:
           branch: update-version
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }}
-          signoff: true\
-          label: release
+          signoff: true
+          labels: release
 
 
