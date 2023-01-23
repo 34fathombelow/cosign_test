@@ -54,8 +54,6 @@ jobs:
           title: "Bump version to ${TARGET_VERSION}"
           body: body
           branch: update-version
-          committer: GitHub <noreply@github.com>
-          author: ${{ github.actor }}
           signoff: true
           labels: release
 
