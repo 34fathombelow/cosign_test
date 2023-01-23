@@ -51,8 +51,8 @@ jobs:
         uses: peter-evans/create-pull-request@2b011faafdcbc9ceb11414d64d0573f37c774b04  # v4.2.3
         with:
           commit-message: "Bump version to ${{ inputs.TARGET_VERSION }}"
-          title: "Bump version ${{ inputs.TARGET_VERSION }} on ${{ inputs.TARGET_BRANCH }} branch"
-          body: body
+          title: "Bump version to ${{ inputs.TARGET_VERSION }} on ${{ inputs.TARGET_BRANCH }} branch"
+          body: Updating VERSION and manifests to ${{ inputs.TARGET_VERSION }}
           branch: update-version
           branch-suffix: random
           signoff: true
