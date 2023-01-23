@@ -8,7 +8,7 @@ images:
   newTag: latest
 - name: quay.io/argoproj/argocd
   newName: quay.io/34fathombelow/argocd
-  newTag: latest
+  newTag: v1.0.0-rc1
 resources:
 - ./application-controller
 - ./dex
