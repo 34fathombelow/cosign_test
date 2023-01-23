@@ -2,13 +2,13 @@ name: Init ArgoCD Release
 on:
   workflow_dispatch:
     inputs:
-      checkout_branch:
-        description: 'Which to branch to checkout'
+      TARGET_BRANCH:
+        description: 'Which to branch to checkout (ie release-2.5)'
         required: true
         type: string
 
-      tag_version:
-        description: ''
+      TARGET_VERSION:
+        description: 'Target version (ie 2.5.0)'
         required: true
         type: string
 
@@ -19,14 +19,13 @@ jobs:
   prepare-release:
     permissions:
       contents: write  # To push changes to release branch
-    name: Perform automatic pre-release on ${{ github.ref }}
+    name: Perform automatic pre-release on ${{ inputs.TARGET_BRANCH }}
   # if: github.repository == 'argoproj/argo-cd'
     runs-on: ubuntu-22.04
     env:
-      SOURCE_TAG: ${{ github.ref }}
-      TARGET_VERSION:
-      TARGET_BRANCH:
-      RELEASE_TAG:
+      TARGET_BRANCH: ${{ inputs.TARGET_BRANCH }}
+      TARGET_VERSION: ${{ inputs.TARGET_VERSION }} 
+
 
 
     steps:
@@ -35,19 +34,20 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ inputs.TARGET_BRANCH }}
 
-      #  name: Check if the published tag is well formed and setup vars
-      #  id: vars
-      #  run: ./.github/workflows/scripts/pre-release-checks.sh
+    #  - name: Check if the published tag is well formed and setup vars
+    #    id: vars
+    #    run: ./.github/workflows/scripts/pre-release-checks.sh
 
-      - name: Checkout corresponding release branch
-        run: |
-          set -ue
-          echo "Switching to release branch '${TARGET_BRANCH}'"
-          if ! git checkout ${TARGET_BRANCH}; then
-            echo "::error::Checking out release branch '${TARGET_BRANCH}' for target version '${TARGET_VERSION}' (tagged '${RELEASE_TAG}') failed. Does it exist in repo?"
-            exit 1
-          fi
+    #  - name: Checkout corresponding release branch
+    #    run: |
+    #      set -ue
+    #      echo "Switching to release branch '${TARGET_BRANCH}'"
+    #      if ! git checkout ${TARGET_BRANCH}; then
+    #        echo "::error::Checking out release branch '${TARGET_BRANCH}' for target version '${TARGET_VERSION}' (tagged '${RELEASE_TAG}') failed. Does it exist in repo?"
+    #        exit 1
+    #      fi
 
       - name: Create VERSION information
         run: |

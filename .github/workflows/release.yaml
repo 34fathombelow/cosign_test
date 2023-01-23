@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 env:
-  GOLANG_VERSION: '1.18'
+  GOLANG_VERSION: '1.18' # Note go-version must also be set in argocd-image.with.go-version
 
 jobs:
   argocd-image:
