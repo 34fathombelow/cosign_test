@@ -3,12 +3,12 @@ on:
   workflow_dispatch:
     inputs:
       TARGET_BRANCH:
-        description: 'Which to branch to checkout (ie release-2.5)'
+        description: 'Which branch to checkout (ie release-2.5)'
         required: true
         type: string
 
       TARGET_VERSION:
-        description: 'Target version (ie 2.5.0)'
+        description: 'Which version to set and build manifests (ie 2.5.0)'
         required: true
         type: string
 
@@ -19,14 +19,11 @@ jobs:
   prepare-release:
     permissions:
       contents: write  # To push changes to release branch
-    name: Perform automatic pre-release on ${{ inputs.TARGET_BRANCH }}
-  # if: github.repository == 'argoproj/argo-cd'
+    name: Automatically generate version and manifests on ${{ inputs.TARGET_BRANCH }}
     runs-on: ubuntu-22.04
     env:
       TARGET_BRANCH: ${{ inputs.TARGET_BRANCH }}
-      TARGET_VERSION: ${{ inputs.TARGET_VERSION }} 
-
-
+      TARGET_VERSION: ${{ inputs.TARGET_VERSION }}
 
     steps:
       - name: Checkout code
@@ -36,25 +33,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: ${{ inputs.TARGET_BRANCH }}
 
-    #  - name: Check if the published tag is well formed and setup vars
-    #    id: vars
-    #    run: ./.github/workflows/scripts/pre-release-checks.sh
-
-    #  - name: Checkout corresponding release branch
-    #    run: |
-    #      set -ue
-    #      echo "Switching to release branch '${TARGET_BRANCH}'"
-    #      if ! git checkout ${TARGET_BRANCH}; then
-    #        echo "::error::Checking out release branch '${TARGET_BRANCH}' for target version '${TARGET_VERSION}' (tagged '${RELEASE_TAG}') failed. Does it exist in repo?"
-    #        exit 1
-    #      fi
-
       - name: Create VERSION information
         run: |
           set -ue
           echo "Bumping version from $(cat VERSION) to ${TARGET_VERSION}"
           echo "${TARGET_VERSION}" > VERSION
-          git commit -m "Bump version to ${TARGET_VERSION}" VERSION
+        #  git commit -m "Bump version to ${TARGET_VERSION}" VERSION
 
       - name: Generate new set of manifests
         run: |
@@ -62,5 +46,5 @@ jobs:
           make install-codegen-tools-local
           make manifests-local VERSION=${TARGET_VERSION}
           git diff
-          git commit manifests/ -m "Bump version to ${TARGET_VERSION}"
+        #  git commit manifests/ -m "Bump version to ${TARGET_VERSION}"
 
