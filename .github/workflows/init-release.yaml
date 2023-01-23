@@ -3,12 +3,12 @@ on:
   workflow_dispatch:
     inputs:
       TARGET_BRANCH:
-        description: 'Which branch to checkout (ie release-2.5)'
+        description: 'Which branch to checkout (e.g. release-2.5)'
         required: true
         type: string
 
       TARGET_VERSION:
-        description: 'Which version to set and build manifests (ie 2.5.0)'
+        description: 'Which version to set and build manifests (e.g. 2.5.0)'
         required: true
         type: string
 
