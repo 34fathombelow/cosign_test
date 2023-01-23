@@ -38,7 +38,6 @@ jobs:
           set -ue
           echo "Bumping version from $(cat VERSION) to ${TARGET_VERSION}"
           echo "${TARGET_VERSION}" > VERSION
-        #  git commit -m "Bump version to ${TARGET_VERSION}" VERSION
 
       - name: Generate new set of manifests
         run: |
@@ -46,5 +45,4 @@ jobs:
           make install-codegen-tools-local
           make manifests-local VERSION=${TARGET_VERSION}
           git diff
-        #  git commit manifests/ -m "Bump version to ${TARGET_VERSION}"
 
