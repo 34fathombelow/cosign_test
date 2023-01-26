@@ -1,4 +1,5 @@
 .vscode/
+tmp/
 .idea/
 .DS_Store
 vendor/
