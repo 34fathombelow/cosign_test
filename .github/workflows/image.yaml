@@ -82,7 +82,7 @@ jobs:
   build-only:
     needs: [set-tag]
     permissions:
-      contents: read  # for git to push upgrade commit if not already deployed
+      contents: read
       packages: write  # for pushing packages to GHCR, which is used by cd.apps.argoproj.io to avoid polluting Quay with tags
       id-token: write # for creating OIDC tokens for signing.
     if: ${{ github.repository == '34fathombelow/cosign_test' && github.event_name != 'push' }}
