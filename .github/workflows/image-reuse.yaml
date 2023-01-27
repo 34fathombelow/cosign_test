@@ -45,14 +45,10 @@ on:
         description: "sha256 digest of container image"
         value: ${{ jobs.publish.outputs.image-digest }}
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   publish:
-    permissions:
-      packages: write # Used to push images to `ghcr.io` if used.
-      id-token: write # Needed to create an OIDC token for keyless signing
     runs-on: ubuntu-22.04
     outputs:
       image-digest: ${{ steps.image.outputs.digest }}

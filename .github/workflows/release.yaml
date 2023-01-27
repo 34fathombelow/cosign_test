@@ -4,8 +4,7 @@ on:
     tags:
       - 'v*'
 
-permissions:
-  contents: read
+permissions: {}
 
 env:
   GOLANG_VERSION: '1.18' # Note go-version must also be set in argocd-image.with.go-version

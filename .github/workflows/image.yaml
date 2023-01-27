@@ -13,11 +13,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
-  set-tag:
+  set-vars:
+    permissions:
+      contents: read
     if: github.repository == '34fathombelow/cosign_test'
     runs-on: ubuntu-22.04
     outputs:
@@ -25,12 +26,10 @@ jobs:
       platforms: ${{ steps.platforms.outputs.platforms }}
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-        with:
-          path: src/github.com/argoproj/argo-cd
 
-      - run: echo "tag=$(cat ./VERSION)-${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+      - name: Set image tag for ghcr
+        run: echo "tag=$(cat ./VERSION)-${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
         id: image
-        working-directory: ./src/github.com/argoproj/argo-cd
 
       - name: Determine image platforms to use
         id: platforms
@@ -43,19 +42,30 @@ jobs:
           echo "Building image for platforms: $IMAGE_PLATFORMS"
           echo "platforms=$IMAGE_PLATFORMS" >> $GITHUB_OUTPUT
 
-  build-and-publish:
-    needs: [set-tag]
+  build-only:
+    needs: [set-vars]
     permissions:
-      contents: write  # for git to push upgrade commit if not already deployed
+      contents: read
+    if: ${{ github.repository == '34fathombelow/cosign_test' && github.event_name != 'push' }}
+    uses: ./.github/workflows/image-reuse.yaml
+    with:
+      go-version: 1.18 # Note: cannot use env variables to set go-version (https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations)
+      platforms: ${{ needs.set-vars.outputs.platforms }}
+      push: false
+
+  build-and-publish:
+    needs: [set-vars]
+    permissions:
+      contents: read
       packages: write  # for pushing packages to GHCR, which is used by cd.apps.argoproj.io to avoid polluting Quay with tags
       id-token: write # for creating OIDC tokens for signing.
     if: ${{ github.repository == '34fathombelow/cosign_test' && github.event_name == 'push' }}
     uses: ./.github/workflows/image-reuse.yaml
     with:
       quay_image_name: quay.io/34fathombelow/argocd:latest
-      ghcr_image_name: ghcr.io/34fathombelow/cosign_test:${{ needs.set-tag.outputs.image-tag }}
+      ghcr_image_name: ghcr.io/34fathombelow/cosign_test:${{ needs.set-vars.outputs.image-tag }}
       go-version: 1.18 # Note: cannot use env variables to set go-version (https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations)
-      platforms: ${{ needs.set-tag.outputs.platforms }}
+      platforms: ${{ needs.set-vars.outputs.platforms }}
       push: true
     secrets:
       quay_username: ${{ secrets.RELEASE_QUAY_USERNAME }}
@@ -63,45 +73,38 @@ jobs:
       ghcr_username: ${{ github.actor }}
       ghcr_password: ${{ secrets.GITHUB_TOKEN }}
 
-  quay-provenance:
-      needs: [build-and-publish]
-      permissions:
-        actions: read # for detecting the Github Actions environment.
-        id-token: write # for creating OIDC tokens for signing.
-        packages: write # for uploading attestations. (https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#known-issues)
-      if: ${{ github.repository == '34fathombelow/cosign_test' && github.event_name == 'push' }}
-      # Must be refernced by a tag. https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#referencing-the-slsa-generator
-      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.4.0
-      with:
-        image: quay.io/34fathombelow/argocd
-        digest: ${{ needs.build-and-publish.outputs.image-digest }}
-        registry-username: 34fathombelow # Should be moved into a secret when #1409 is merged (github.com/slsa-framework/slsa-github-generator/pull/1409)
-      secrets:
-        registry-password: ${{ secrets.RELEASE_QUAY_TOKEN }}
-
-  build-only:
-    needs: [set-tag]
+  build-and-publish-provenance:
+    needs: [build-and-publish]
     permissions:
-      contents: read
-      packages: write  # for pushing packages to GHCR, which is used by cd.apps.argoproj.io to avoid polluting Quay with tags
+      actions: read # for detecting the Github Actions environment.
       id-token: write # for creating OIDC tokens for signing.
-    if: ${{ github.repository == '34fathombelow/cosign_test' && github.event_name != 'push' }}
-    uses: ./.github/workflows/image-reuse.yaml
+      packages: write # for uploading attestations. (https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#known-issues)
+    if: ${{ github.repository == '34fathombelow/cosign_test' && github.event_name == 'push' }}
+    # Must be refernced by a tag. https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#referencing-the-slsa-generator
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.4.0
     with:
-      go-version: 1.18 # Note: cannot use env variables to set go-version (https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations)
-      platforms: ${{ needs.set-tag.outputs.platforms }}
-      push: false
+      image: quay.io/34fathombelow/argocd
+      digest: ${{ needs.build-and-publish.outputs.image-digest }}
+      registry-username: 34fathombelow # Should be moved into a secret when #1409 is merged (github.com/slsa-framework/slsa-github-generator/pull/1409)
+    secrets:
+      registry-password: ${{ secrets.RELEASE_QUAY_TOKEN }}
 
-      # deploy
+#  Deploy:
+#   needs: [build-and-publish]
+#   permissions:
+#     contents: write  # for git to push upgrade commit if not already deployed
+#     packages: write  # for pushing packages to GHCR, which is used by cd.apps.argoproj.io to avoid polluting Quay with tags
+#   if: ${{ github.repository == 'argoproj/argo-cd' && github.event_name == 'push' }}
+#   runs-on: ubuntu-22.04
+#   steps:
+#      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
 #      - run: git clone "https://$TOKEN@github.com/argoproj/argoproj-deployments"
-#        if: github.event_name == 'push'
 #        env:
 #          TOKEN: ${{ secrets.TOKEN }}
 #      - run: |
-#          docker run -u $(id -u):$(id -g) -v $(pwd):/src -w /src --rm -t ghcr.io/argoproj/argo-cd/argocd:${{ steps.image.outputs.tag }} kustomize edit set image quay.io/argoproj/argocd=ghcr.io/argoproj/argo-cd/argocd:${{ steps.image.outputs.tag }}
+#          docker run -u $(id -u):$(id -g) -v $(pwd):/src -w /src --rm -t ghcr.io/argoproj/argo-cd/argocd:${{ needs.set-vars.outputs.image-tag }} kustomize edit set image quay.io/argoproj/argocd=ghcr.io/argoproj/argo-cd/argocd:${{ needs.set-vars.outputs.image-tag }}
 #          git config --global user.email 'ci@argoproj.com'
 #          git config --global user.name 'CI'
-#          git diff --exit-code && echo 'Already deployed' || (git commit -am 'Upgrade argocd to ${{ steps.image.outputs.tag }}' && git push)
-#        if: github.event_name == 'push'
+#          git diff --exit-code && echo 'Already deployed' || (git commit -am 'Upgrade argocd to ${{ needs.set-vars.outputs.image-tag }}' && git push)
 #        working-directory: argoproj-deployments/argocd
-      # TODO: clean up old images once github supports it: https://github.community/t5/How-to-use-Git-and-GitHub/Deleting-images-from-GitHub-Package-Registry/m-p/41202/thread-id/9811
+
