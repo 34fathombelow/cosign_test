@@ -46,6 +46,8 @@ jobs:
     needs: [set-vars]
     permissions:
       contents: read
+      packages: none
+      id-token: none
     if: ${{ github.repository == '34fathombelow/cosign_test' && github.event_name != 'push' }}
     uses: ./.github/workflows/image-reuse.yaml
     with:
