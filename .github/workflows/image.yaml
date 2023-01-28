@@ -46,8 +46,8 @@ jobs:
     needs: [set-vars]
     permissions:
       contents: read
-      packages: none
-      id-token: none
+      packages: write  # for pushing packages to GHCR, which is used by cd.apps.argoproj.io to avoid polluting Quay with tags
+      id-token: write # for creating OIDC tokens for signing.
     if: ${{ github.repository == '34fathombelow/cosign_test' && github.event_name != 'push' }}
     uses: ./.github/workflows/image-reuse.yaml
     with:
