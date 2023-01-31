@@ -1,23 +1,27 @@
 # Workflows
 
-| Workflow          | Description                                                |
-|-------------------|------------------------------------------------------------|
-| image-reuse.yaml  | Build, push, and Sign container images                     |
-| image.yaml        | Build for PR's & Build & push for push events              |
-| init-release.yaml | Build manifests and Version then create a PR               |
-| release.yaml      | Build images, cli-binaries, provenances, and post actions  |
+| Workflow           | Description                                                    |
+|--------------------|----------------------------------------------------------------|
+| ci-build.yaml      | Build, lint, test, codegen, build-ui, analyze, e2e-test        |
+| codeql.yaml        | CodeQL analysis                                                |
+| image-reuse.yaml   | Build, push, and Sign container images                         |
+| image.yaml         | Build container image for PR's & publish for push events       |
+| pr-title-check.yaml| Lint PR for semantic information                               |
+| init-release.yaml  | Build manifests and version then create a PR for release branch|
+| release.yaml       | Build images, cli-binaries, provenances, and post actions      |
+| update-snyk.yaml   | Scheduled snyk reports                                         |
 
+# Reusable workflows
 ## image-reuse.yaml
 
-* The reuable workflow can be used to publish or build images with multiple container registries(Quay,GHCR,dockerhub), and then signed with cosign when a image is pushed.
-* A GO version `must` be specified e.g. 1.19
-* The image namespace for each registry *must* contain the tag. Note: multiple tags are allowed for each registry.
-* Multiple platforms can be specified e.g. linux/amd64,linux/arm64
-* Images are not published by default. A boolean value must be set to `true` to push images.
-* An optional target can be specified.
+- The resuable workflow can be used to publish or build images with multiple container registries(Quay,GHCR, dockerhub), and then sign them with cosign when an image is published.
+- A GO version `must` be specified e.g. 1.19
+- The image name for each registry *must* contain the tag. Note: multiple tags are allowed for each registry using a CSV type.
+- Multiple platforms can be specified e.g. linux/amd64,linux/arm64
+- Images are not published by default. A boolean value must be set to `true` to push images.
+- An optional target can be specified.
 
-
-| Inputs            | Description                         | Value       | Required | Defaults        |
+| Inputs            | Description                         | Type        | Required | Defaults        |
 |-------------------|-------------------------------------|-------------|----------|-----------------|
 | go-version        | Version of Go to be used            | string      | true     | none            |
 | quay_image_name   | Full image name and tag             | CSV, string | false    | none            |
@@ -30,9 +34,4 @@
 | Outputs     | Description                              | Type  |
 |-------------|------------------------------------------|-------|
 |image-digest | Image disgest of image container created | string|
-
-
-
-
-
 
