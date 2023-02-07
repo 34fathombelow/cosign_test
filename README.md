@@ -1,6 +1,3 @@
-[![OpenSSF
-Scorecard](https://api.securityscorecards.dev/projects/github.com/34fathombelow/cosign_test/badge)](https://api.securityscorecards.dev/projects/github.com/34fathombelow/cosign_test)
-
 # Verification of Argo CD signatures
 
 All Argo CD container images are signed by cosign. 
