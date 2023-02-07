@@ -1,3 +1,6 @@
+[![OpenSSF
+Scorecard](https://api.securityscorecards.dev/projects/github.com/34fathombelow/cosign_test/badge)](https://api.securityscorecards.dev/projects/github.com/34fathombelow/cosign_test)
+
 # Verification of Argo CD signatures
 
 All Argo CD container images are signed by cosign. 
@@ -36,6 +39,9 @@ Cosign is compatible with several types of admission controllers.  Please see th
 # View provenance of container image
 ```bash
 COSIGN_EXPERIMENTAL=1  cosign verify-attestation --type slsaprovenance quay.io/34fathombelow/argocd:v2.5.0 | jq -r .payload | base64 -d | jq
+```
+```
+cosign download attestation quay.io/34fathombelow/argocd:latest | jq -r '.payload' | base64 -d | jq
 ```
 # Verify an asset
 ```bash
