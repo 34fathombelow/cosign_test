@@ -51,7 +51,8 @@ jobs:
     if: ${{ github.repository == '34fathombelow/cosign_test' && github.event_name != 'push' }}
     uses: ./.github/workflows/image-reuse.yaml
     with:
-      go-version: 1.18 # Note: cannot use env variables to set go-version (https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations)
+      # Note: cannot use env variables to set go-version (https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations)
+      go-version: 1.18
       platforms: ${{ needs.set-vars.outputs.platforms }}
       push: false
 

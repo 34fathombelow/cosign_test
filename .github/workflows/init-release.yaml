@@ -8,7 +8,7 @@ on:
         type: string
 
       TARGET_VERSION:
-        description: 'Which version to set and build manifests (e.g. 2.5.0-rc1)'
+        description: 'Which version to set and build manifests (e.g. 2.5.0-rc1 Note: v prefix is not used)'
         required: true
         type: string
 
