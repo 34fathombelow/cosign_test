@@ -55,7 +55,7 @@ archives:
       - none* # We can add files to the archive, such as LICENSE or CHANGELOG. Files will be placed into each tar.gz/zip
 
 checksum:
-  name_template: 'checksums.txt'
+  name_template: 'cli_checksums.txt'
   algorithm: sha256
 
 release:

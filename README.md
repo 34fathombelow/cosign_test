@@ -1,7 +1,18 @@
-# Verification of Argo CD signatures
+# Verification of Argo CD Artifacts
 
 ## Release Assets
-- argocd-cli
+- argocd_v<version>_cli.intoto.jsonl
+- argocd_v<version>_darwin_arm64.tar.gz
+- argocd_v<version>_darwin_amd64.tar.gz
+- argocd_v<version>_linux_amd64.tar.gz
+- argocd_v<version>_linux_arm64.tar.gz
+- argocd_v<version>_linux_ppc64le.tar.gz
+- argocd_v<version>_linux_s390x.tar.gz
+- argocd_v<version>_linux_windows_amd64.zip
+- cli_checksums.txt
+- sbom.tar.gz
+- sbom.tar.gz.pem
+- sbom.tar.gz.sig
 
 All Argo CD container images are signed by cosign. 
 
