@@ -22,13 +22,13 @@ builds:
       - -extldflags="-static"
     goos:
       - linux
-    #  - darwin
-    #  - windows
+      - darwin
+      - windows
     goarch:
       - amd64
       - arm64
-    #  - s390x
-    #  - ppc64le
+      - s390x
+      - ppc64le
     ignore:
       - goos: darwin
         goarch: s390x
@@ -91,6 +91,13 @@ release:
     ## Upgrading
 
     If upgrading from a different minor version, be sure to read the [upgrading](https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/overview/) documentation.
+  footer: |
+    **Full Changelog**: https://github.com/34fathombelow/cosign_test/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+    * * *
+    
+    <a href="https://argoproj.github.io/cd/"><img src="https://raw.githubusercontent.com/argoproj/argo-site/master/content/pages/cd/gitops-cd.png" with="100%" ></a>
+
 
 snapshot: #### To be removed for PR
   name_template: "2.6.0"

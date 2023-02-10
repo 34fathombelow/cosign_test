@@ -1,5 +1,8 @@
 # Verification of Argo CD signatures
 
+## Release Assets
+- argocd-cli
+
 All Argo CD container images are signed by cosign. 
 
 ## Prerequisites
