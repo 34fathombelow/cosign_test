@@ -14,7 +14,7 @@ images:
   newTag: latest
 - name: quay.io/argoproj/argocd
   newName: quay.io/34fathombelow/argocd
-  newTag: v1.1.0
+  newTag: v1.1.1
 resources:
 - ../../base/application-controller
 - ../../base/applicationset-controller
