@@ -2,13 +2,12 @@
 
 ## Automated release procedure
 
-Starting from `release-1.6` branch, ArgoCD can be released in an automated fashion
-using GitHub actions. The release process takes about 20 minutes, sometimes a
-little less, depending on the performance of GitHub Actions runners.
+ArgoCD can be released in an automated fashion using GitHub actions. The release process takes about 60 minutes,
+sometimes a little less, depending on the performance of GitHub Actions runners.
 
 The target release branch must already exist in the GitHub repository. If you for
-example want to create a release `v1.7.0`, the corresponding release branch
-`release-1.7` needs to exist, otherwise, the release cannot be built. Also,
+example want to create a release `v2.7.0`, the corresponding release branch
+`release-2.7` needs to exist, otherwise, the release cannot be built. Also,
 the trigger tag should always be created in the release branch, checked out
 in your local repository clone.
 
@@ -118,7 +117,7 @@ checks to see if the release came out correctly:
 * Check [https://github.com/argoproj/argo-cd/releases](https://github.com/argoproj/argo-cd/releases)
   to see if the release has been correctly created and if all required assets
   are attached.
-* Check whether the image has been published on DockerHub correctly
+* Check whether the image has been published on Quay.io correctly
 
 ### If something went wrong
 
@@ -134,85 +133,9 @@ have been performed, you will need to manually clean up.
     * `VERSION`
     * `manifests/*`
 
-### Post-process manual steps
-
-For now, the only manual steps left are to
-
-* update stable tag in the GitHub repository to point to new the release (if appropriate)
-* update the `VERSION` file on `master` if this is a new major release
-
-These may be automated as well in the future.
-
 ## Manual releasing
 
-The automatic release process does not interfere with the manual release process, since
-the trigger tag does not match a normal release tag. If you prefer to perform,
-manual release or if automatic release is for some reason broken, these are the
-steps:
-
-Make sure you are logged into Docker Hub:
-
-```bash
-docker login
-```
-
-Export the upstream repository and branch name, e.g.:
-
-```bash
-REPO=upstream ;# or origin 
-BRANCH=release-1.3
-```
-
-Set the `VERSION` environment variable:
-
-```bash 
-# release candidate
-VERSION=v1.3.0-rc1
-# GA release
-VERSION=v1.3.1
-```
-
-Update `VERSION` and manifests with the new version:
-
-```bash
-git checkout $BRANCH
-echo ${VERSION:1} > VERSION
-make dev-tools-image
-make manifests IMAGE_TAG=$VERSION
-git commit -am "Update manifests to $VERSION"
-git tag $VERSION
-```
-
-Build, and push release to Docker Hub
-
-```bash
-git clean -fd
-make release IMAGE_NAMESPACE=argoproj IMAGE_TAG=$VERSION DOCKER_PUSH=true
-git push $REPO $BRANCH
-git push $REPO $VERSION
-```
-
-Update [GitHub releases](https://github.com/argoproj/argo-cd/releases) with:
-
-* Getting started (copy from the previous release)
-* Changelog
-* Binaries (e.g. `dist/argocd-darwin-amd64`).
-
-## Update brew formulae (manual)
-
-If GA, update the Brew formula:
-
-```bash
-brew bump-formula-pr argocd --version ${VERSION:1}
-```
-
-## Update stable tag (manual)
-
-If GA, update `stable` tag:
-
-```bash
-git tag stable --force && git push $REPO stable --force
-```
+The automatic release process does not allow a manual release process. Image signatures and provenance need to be created using GitHub Actions.
 
 ## Verify release
 
@@ -223,14 +146,3 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/$V
 ```
 
 Follow the [Getting Started Guide](../getting_started/).
-
-If GA:
-
-```bash
-brew upgrade argocd
-/usr/local/bin/argocd version
-```
-
-Sync Argo CD in [https://cd.apps.argoproj.io/applications/argo-cd](https://cd.apps.argoproj.io/applications/argo-cd).
-
-Deploy the [site](site.md).
