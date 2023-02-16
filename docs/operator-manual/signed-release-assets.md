@@ -75,6 +75,7 @@ A single attestation (`argocd_v<version>_cli.intoto.jsonl`) can be used with [sl
 slsa-verifier verify-artifact argocd_v<version>_linux_amd64.tar.gz --provenance-path argocd_v<version>_cli.intoto.jsonl  --source-uri github.com/argoproj/argo-cd
 ```
 ## Verifying an artifact and output the provenance
+
 ```bash
 slsa-verifier verify-artifact argocd_v<version>_linux_amd64.tar.gz --provenance-path argocd_v<version>_cli.intoto.jsonl  --source-uri github.com/argoproj/argo-cd --print-provenance | jq
 ```
@@ -87,6 +88,8 @@ Verified OK
 ```
 
 
-## Admission controllers
+## Verification on Kubernetes
+
+### Policy controllers
 
 Cosign and SLSA provenances are compatible with several types of admission controllers.  Please see the [cosign documentation](https://docs.sigstore.dev/cosign/overview/#kubernetes-integrations) and [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#verification) for supported controllers.
