@@ -25,7 +25,7 @@ jobs:
     secrets:
       quay_username: ${{ secrets.RELEASE_QUAY_USERNAME }}
       quay_password: ${{ secrets.RELEASE_QUAY_TOKEN }}
-  
+
   argocd-image-provenance:
       needs: [argocd-image]
       permissions:
