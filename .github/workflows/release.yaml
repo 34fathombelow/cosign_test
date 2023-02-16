@@ -42,6 +42,9 @@ jobs:
         registry-password: ${{ secrets.RELEASE_QUAY_TOKEN }}
 
   goreleaser:
+    needs:
+      - argocd-image
+      - argocd-image-provenance
     permissions:
       contents: write # used for uploading assets
     runs-on: ubuntu-22.04
