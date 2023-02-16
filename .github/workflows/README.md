@@ -33,5 +33,5 @@
 
 | Outputs     | Description                              | Type  |
 |-------------|------------------------------------------|-------|
-|image-digest | Image disgest of image container created | string|
+|image-digest | Image digest of image container created  | string|
 
