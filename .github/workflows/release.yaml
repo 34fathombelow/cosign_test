@@ -18,6 +18,7 @@ jobs:
     uses: ./.github/workflows/image-reuse.yaml
     with:
       quay_image_name: quay.io/34fathombelow/argocd:${{ github.ref_name }}
+      docker_image_name: douhunt/argocd:${{ github.ref_name }}
       # Note: cannot use env variables to set go-version (https://docs.github.com/en/actions/using-workflows/reusing-workflows#limitations)
       go-version: 1.18
       platforms: linux/amd64,linux/arm64,linux/s390x,linux/ppc64le
@@ -25,6 +26,8 @@ jobs:
     secrets:
       quay_username: ${{ secrets.RELEASE_QUAY_USERNAME }}
       quay_password: ${{ secrets.RELEASE_QUAY_TOKEN }}
+      docker_username: ${{ secrets.RELEASE_DOCKERHUB_USERNAME }}
+      docker_password: ${{ secrets.RELEASE_DOCKERHUB_TOKEN }}
 
   argocd-image-provenance:
       needs: [argocd-image]
@@ -41,10 +44,26 @@ jobs:
       secrets:
         registry-password: ${{ secrets.RELEASE_QUAY_TOKEN }}
 
+  argocd-image-provenance-docker:
+      needs: [argocd-image]
+      permissions:
+        actions: read # for detecting the Github Actions environment.
+        id-token: write # for creating OIDC tokens for signing.
+        packages: write # for uploading attestations. (https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#known-issues)
+      # Must be refernced by a tag. https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#referencing-the-slsa-generator
+      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.4.0
+      with:
+        image: douhunt/argocd
+        digest: ${{ needs.argocd-image.outputs.image-digest }}
+        registry-username: douhunt # Should be moved into a secret when #1409 is merged (github.com/slsa-framework/slsa-github-generator/pull/1409)
+      secrets:
+        registry-password: ${{ secrets.RELEASE_DOCKERHUB_TOKEN }}
+
   goreleaser:
     needs:
       - argocd-image
       - argocd-image-provenance
+      - argocd-image-provenance-docker
     permissions:
       contents: write # used for uploading assets
     runs-on: ubuntu-22.04
