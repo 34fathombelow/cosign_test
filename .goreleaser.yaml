@@ -8,7 +8,7 @@ before:
 builds:
   - id: argocd-cli
     main: ./cmd
-    binary: argocd
+    binary: argocd-{{ .Os}}-{{ .Arch}}
     env:
       - CGO_ENABLED=0
     flags:
@@ -46,13 +46,8 @@ archives:
     builds:
     - argocd-cli
     name_template: |-
-      {{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}
-    format: tar.gz
-    format_overrides:
-    - goos: windows
-      format: zip
-    files:
-      - none* # We can add files to the archive, such as LICENSE or CHANGELOG. Files will be placed into each tar.gz/zip
+      {{ .ProjectName }}-{{ .Os }}-{{ .Arch }}
+    format: binary
 
 checksum:
   name_template: 'cli_checksums.txt'
