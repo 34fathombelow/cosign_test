@@ -29,6 +29,15 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: ${{ inputs.TARGET_BRANCH }}
 
+      - name: Check if the TARGET_VERSION is well formed.
+        run: |
+          set -xue
+          # Target version must not contain 'v' prefix      
+          if echo "${{ inputs.TARGET_VERSION }}" | grep -e '^v'; then
+            echo "::error::Target version '${{ inputs.TARGET_VERSION }}' should not begin with a 'v' prefix, refusing to continue." >&2
+            exit 1
+          fi
+
       - name: Create VERSION information
         run: |
           set -ue
