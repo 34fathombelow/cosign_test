@@ -36,12 +36,12 @@ jobs:
         id-token: write # for creating OIDC tokens for signing.
         packages: write # for uploading attestations. (https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#known-issues)
       # Must be refernced by a tag. https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#referencing-the-slsa-generator
-      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.4.0
+      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.5.0
       with:
         image: quay.io/34fathombelow/argocd
         digest: ${{ needs.argocd-image.outputs.image-digest }}
-        registry-username: 34fathombelow # Should be moved into a secret when #1409 is merged (github.com/slsa-framework/slsa-github-generator/pull/1409)
       secrets:
+        registry-username: ${{ secrets.RELEASE_QUAY_USERNAME }}
         registry-password: ${{ secrets.RELEASE_QUAY_TOKEN }}
 
   argocd-image-provenance-docker:
@@ -51,12 +51,12 @@ jobs:
         id-token: write # for creating OIDC tokens for signing.
         packages: write # for uploading attestations. (https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#known-issues)
       # Must be refernced by a tag. https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#referencing-the-slsa-generator
-      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.4.0
+      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.5.0
       with:
         image: douhunt/argocd
         digest: ${{ needs.argocd-image.outputs.image-digest }}
-        registry-username: douhunt # Should be moved into a secret when #1409 is merged (github.com/slsa-framework/slsa-github-generator/pull/1409)
       secrets:
+        registry-username: ${{ secrets.RELEASE_DOCKERHUB_USERNAME }}
         registry-password: ${{ secrets.RELEASE_DOCKERHUB_TOKEN }}
 
   goreleaser:
@@ -123,7 +123,7 @@ jobs:
       id-token: write # Needed for provenance signing and ID
       contents: write #  Needed for release uploads
     # Must be refernced by a tag. https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/container/README.md#referencing-the-slsa-generator
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.4.0
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.5.0
     with:
       base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
       provenance-name: "argocd_${{ github.ref_name }}_cli.intoto.jsonl"
@@ -151,9 +151,9 @@ jobs:
           go-version: ${{ env.GOLANG_VERSION }}
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@9becc617647dfa20ae7b1151972e9b3a2c338a2b # v2.8.1
+        uses: sigstore/cosign-installer@c3667d99424e7e6047999fb6246c0da843953c65 # v3.0.1
         with:
-          cosign-release: 'v1.13.1'
+          cosign-release: 'v2.0.0'
 
       - name: Generate SBOM (spdx)
         id: spdx-builder
@@ -186,8 +186,6 @@ jobs:
           cd /tmp && tar -zcf sbom.tar.gz *.spdx
 
       - name: Sign SBOM
-        env:
-          COSIGN_EXPERIMENTAL: "true"
         run: |
           cosign sign-blob \
             --output-certificate=/tmp/sbom.tar.gz.pem \
