@@ -190,6 +190,7 @@ jobs:
           cosign sign-blob \
             --output-certificate=/tmp/sbom.tar.gz.pem \
             --output-signature=/tmp/sbom.tar.gz.sig \
+            -y \
             /tmp/sbom.tar.gz
 
       - name: Upload SBOM and signature assets
