@@ -85,7 +85,7 @@ jobs:
       - name: Set GORELEASER_PREVIOUS_TAG # Workaround, GoReleaser uses 'git-describe' to determine a previous tag. Our tags are created in realease branches.
         run: |
           set -xue
-          if echo ${{ github_ref_name }} | grep -E -- '-rc1+$';then
+          if echo ${{ github.ref_name }} | grep -E -- '-rc1+$';then
             echo "GORELEASER_PREVIOUS_TAG=$(git -c 'versionsort.suffix=-rc' tag --list --sort=version:refname | tail -n 2 | head -n 1)" >> GITHUB_ENV
           else
             echo "This is not the first release on the branch, Using GoReleaser defaults"
