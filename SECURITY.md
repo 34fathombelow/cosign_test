@@ -1,4 +1,4 @@
-some important test commit
+some important test commit2
 
 # Security Policy for Argo CD
 
