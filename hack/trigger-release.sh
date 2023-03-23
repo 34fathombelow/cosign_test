@@ -50,7 +50,7 @@ fi
 echo ">> Creating new release '${NEW_TAG}' by pushing '${NEW_TAG}' to '${GIT_REMOTE}'"
 
 # Create new tag in local repository
-git tag ${NEW_TAG}
+git tag -s ${NEW_TAG}
 
 # Push the new tag to remote repository
 git push ${GIT_REMOTE} ${NEW_TAG}
